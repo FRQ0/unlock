@@ -1,0 +1,30 @@
+UNLOCK SYSTEMS — KIT DA MARCA
+A gente destrava seu negócio.  ·  @unlock_systems  ·  Frutal-MG
+
+CORES
+  Lime Unlock   #C8F542   destaque, botões, palavras-chave
+  Grafite       #0D0F12   fundo principal (sempre escuro)
+  Superfície    #1C2128   cards e caixas
+  Ciano Sinal   #5CE1E6   detalhes tech, rótulos pequenos
+  Branco Gelo   #F4F4EF   textos
+
+FONTES (todas grátis no Google Fonts)
+  Títulos:  Archivo, largura Expanded (125%), peso ExtraBold, TUDO MAIÚSCULO
+            (no Premiere/CapCut, se não tiver Archivo Expanded, use Archivo Black)
+  Textos:   Inter (Medium / SemiBold)
+  Rótulos:  JetBrains Mono, maiúsculo, com espaçamento entre letras  ex.: // CARDÁPIO 3D
+
+LOGO
+  logos/unlock-logo-branco.png   para fundo escuro (o padrão)
+  logos/unlock-logo-preto.png    para fundo claro
+  logos/unlock-icone.png / .svg  só o cadeado (abre e fecha bem em animação)
+  logos/unlock-perfil-1080.png   foto de perfil
+  Não mudar as cores do logo, não esticar, não colocar em fundo colorido.
+
+ESTILO VISUAL
+  Fundo grafite com grade fina, verde-limão só no que importa, cantos de mira,
+  brilho verde suave. Visual de tecnologia, limpo, sem exagero de efeitos.
+
+PASTAS
+  posts/      as 2 primeiras postagens (carrossel), prontas pra postar
+  projetos/   imagens dos projetos (padaria, Pizza Club, Sushi Höuze)
