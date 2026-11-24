@@ -14,13 +14,13 @@ const MODE_LABEL: Record<Mode, string> = { DINE_IN: "Comer aqui", PICKUP: "Retir
 
 const inputCls = "h-12 w-full border border-[var(--m-line)] bg-transparent px-4 text-[15px] focus:border-[var(--m-accent)] focus:outline-none";
 
-export function CartSheet({ open, onClose, info, canOrder, closedReason }: { open: boolean; onClose: () => void; info: MenuInfo; canOrder: boolean; closedReason?: string | null }) {
+export function CartSheet({ open, onClose, info, canOrder, closedReason, table, waiter }: { open: boolean; onClose: () => void; info: MenuInfo; canOrder: boolean; closedReason?: string | null; table?: string; waiter?: boolean }) {
   const cart = useCart();
   const router = useRouter();
   const modes = (["DINE_IN", "PICKUP", "DELIVERY"] as Mode[]).filter((m) => ({ DINE_IN: info.acceptsDineIn, PICKUP: info.acceptsPickup, DELIVERY: info.acceptsDelivery })[m]);
-  const [mode, setMode] = useState<Mode>(modes[0] ?? "DINE_IN");
-  const [form, setForm] = useState({ customerName: "", customerPhone: "", tableNumber: "", deliveryAddress: "", notes: "" });
-  const [consent, setConsent] = useState(false);
+  const [mode, setMode] = useState<Mode>(table ? "DINE_IN" : modes[0] ?? "DINE_IN");
+  const [form, setForm] = useState({ customerName: waiter && table ? `Mesa ${table}` : "", customerPhone: "", tableNumber: table ?? "", deliveryAddress: "", notes: "" });
+  const [consent, setConsent] = useState(Boolean(waiter));
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const fee = mode === "DELIVERY" ? info.deliveryFeeCents : 0;
@@ -37,7 +37,8 @@ export function CartSheet({ open, onClose, info, canOrder, closedReason }: { ope
       if (!r.ok) return setError(r.error);
       cart.clear();
       onClose();
-      router.push(`/${info.slug}/pedido/${r.token}`);
+      // No modo garçom, volta para a tela de mesas; o cliente vai acompanhar o pedido.
+      router.push(waiter ? "/painel/garcom?enviado=1" : `/${info.slug}/pedido/${r.token}`);
     });
   };
 
@@ -72,7 +73,7 @@ export function CartSheet({ open, onClose, info, canOrder, closedReason }: { ope
 
         {cart.lines.length > 0 && canOrder && (
           <>
-            {modes.length > 1 && (
+            {modes.length > 1 && !table && (
               <fieldset className="flex flex-col gap-2">
                 <legend className="mb-2 font-bold">Como você quer receber?</legend>
                 <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${modes.length}, minmax(0, 1fr))` }}>
@@ -101,10 +102,14 @@ export function CartSheet({ open, onClose, info, canOrder, closedReason }: { ope
               <p className="text-[13px] text-[var(--m-muted)]">Pagamento combinado no local. O valor final é confirmado pelo estabelecimento.</p>
             </dl>
 
+            {waiter ? (
+              <p className="text-[13px] text-[var(--m-muted)]">Pedido lançado pela equipe para a mesa {form.tableNumber}.</p>
+            ) : (
             <label className="flex items-start gap-3 text-[13px] leading-relaxed text-[var(--m-muted)]">
               <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 h-5 w-5 flex-none" style={{ accentColor: "var(--m-button)" }} />
               <span>Autorizo {info.name} a usar meu nome{mode !== "DINE_IN" ? ", telefone" : ""}{mode === "DELIVERY" ? " e endereço" : ""} apenas para preparar e entregar este pedido. <Link href="/privacidade" target="_blank" className="underline">Privacidade</Link></span>
             </label>
+            )}
 
             {error && <p role="alert" className="rounded-xl bg-[#E5484D]/10 p-3 text-sm font-medium text-[#E5484D]">{error}</p>}
 

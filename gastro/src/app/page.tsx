@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { db } from "@/lib/db";
-import { formatBRL } from "@/lib/money";
-import { parseFeatures } from "@/lib/plans";
+import { unlockContactUrl } from "@/lib/contact";
 import { Logo, LogoMark } from "@/components/ui/Logo";
 import { Icon, type IconName } from "@/components/ui/Icon";
 
 export const dynamic = "force-dynamic";
+const ctaCls = "inline-flex h-14 items-center gap-2 rounded-2xl bg-brasa px-6 text-base font-semibold text-grafite hover:bg-[#FF8259]";
 
 const FEATURES: { icon: IconName; title: string; text: string }[] = [
   { icon: "video", title: "Feed de vídeos", text: "Seus pratos em vídeo vertical, um depois do outro. O cliente desliza, dá vontade e pede ali mesmo." },
@@ -19,13 +18,13 @@ const FEATURES: { icon: IconName; title: string; text: string }[] = [
 const FAQ: [string, string][] = [
   ["O cliente precisa baixar algum aplicativo?", "Não. O cardápio abre no navegador do celular, pela plaquinha NFC, pelo QR Code ou pelo link."],
   ["A aproximação (NFC) funciona em todo celular?", "Funciona na maioria dos celulares atuais com NFC ligado. Para os outros, a plaquinha traz o QR Code, que abre o mesmo cardápio."],
-  ["Posso mudar preços e produtos quando quiser?", "Sim. No plano Básico você mesmo altera pelo painel. No Completo, a equipe Unlock faz para você — e você também pode mexer."],
+  ["Posso mudar preços e produtos quando quiser?", "Sim. A equipe Unlock faz as atualizações para você, e você também pode mexer pelo seu painel, que é bem simples."],
   ["Como funciona o pagamento dos pedidos?", "Por enquanto, o pagamento dos pedidos é combinado no local (dinheiro, Pix ou maquininha). O cardápio organiza e envia o pedido para o seu painel."],
   ["E se eu trocar de cores ou de logo, preciso refazer a plaquinha?", "Não. O link do seu cardápio é fixo, então a plaquinha continua funcionando para sempre."],
 ];
 
 export default async function Landing() {
-  const plans = await db.plan.findMany({ where: { active: true }, orderBy: { sortOrder: "asc" } });
+  const contact = unlockContactUrl();
 
   return (
     <div className="bg-grafite text-gelo">
@@ -33,9 +32,8 @@ export default async function Landing() {
         <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-4 sm:px-6">
           <Link href="/" aria-label="Unlock Gastro"><Logo size={28} /></Link>
           <nav className="flex items-center gap-1 sm:gap-2" aria-label="Principal">
-            <a href="#planos" className="hidden h-11 items-center rounded-xl px-3 text-[15px] text-[#C9CED6] hover:text-gelo sm:inline-flex">Planos</a>
             <Link href="/entrar" className="inline-flex h-11 items-center rounded-xl px-3 text-[15px] text-[#C9CED6] hover:text-gelo">Entrar</Link>
-            <Link href="/cadastro" className="inline-flex h-11 items-center rounded-xl bg-brasa px-4 text-[15px] font-semibold text-grafite hover:bg-[#FF8259]">Criar conta</Link>
+            <a href={contact} target="_blank" rel="noopener noreferrer" className="inline-flex h-11 items-center rounded-xl bg-brasa px-4 text-[15px] font-semibold text-grafite hover:bg-[#FF8259]">Quero meu cardápio</a>
           </nav>
         </div>
       </header>
@@ -47,11 +45,11 @@ export default async function Landing() {
             <h1 className="display text-[44px] leading-[0.98] sm:text-[64px]">A gente destrava<br />o seu <span className="text-brasa">cardápio.</span></h1>
             <p className="max-w-xl text-lg leading-relaxed text-muted">Cardápio com a sua marca, feed de vídeos dos seus pratos, pedidos direto no painel e plaquinha NFC na mesa. Para hamburguerias, pizzarias, restaurantes, bares, cafeterias e açaiterias.</p>
             <div className="flex flex-wrap gap-3">
-              <Link href="/cadastro" className="inline-flex h-14 items-center gap-2 rounded-2xl bg-brasa px-6 text-base font-semibold text-grafite hover:bg-[#FF8259]">Criar minha conta<Icon name="chevronRight" /></Link>
+              <a href={contact} target="_blank" rel="noopener noreferrer" className={ctaCls}>Quero meu cardápio<Icon name="chevronRight" /></a>
               <a href="#como-funciona" className="inline-flex h-14 items-center rounded-2xl border border-line-2 px-6 text-base font-semibold hover:bg-carvao">Como funciona</a>
             </div>
             <div className="flex flex-wrap gap-2">
-              {["Sem aplicativo", "Sem programador", "Link fixo para sempre"].map((t) => (
+              {["Sem aplicativo", "A Unlock monta tudo", "Link fixo para sempre"].map((t) => (
                 <span key={t} className="label-mono rounded-full border border-line px-3 py-2 !text-[11px] text-[#C9CED6]">● {t}</span>
               ))}
             </div>
@@ -88,9 +86,9 @@ export default async function Landing() {
         </div>
         <ol className="grid gap-4 md:grid-cols-3">
           {[
-            ["Crie sua conta", "Cadastre o estabelecimento, escolha o endereço do cardápio e o plano."],
-            ["Monte o cardápio", "Coloque logo, cores, produtos, fotos e vídeos. A prévia mostra tudo antes de publicar."],
-            ["Coloque a plaquinha", "Baixe o QR Code, grave a etiqueta NFC e pronto: o cliente aproxima e pede."],
+            ["Fale com a Unlock", "Você manda o cardápio, as fotos dos produtos e a sua marca."],
+            ["A gente monta tudo", "Cadastramos os produtos, criamos os vídeos 3D dos pratos e deixamos com as suas cores."],
+            ["Plaquinha na mesa", "Entregamos o link, o QR Code e a plaquinha NFC. O cliente aproxima e pede."],
           ].map(([t, d], i) => (
             <li key={t} className="flex flex-col gap-3 rounded-3xl border border-line bg-grafite-2 p-6">
               <span className="label-mono text-brasa">{String(i + 1).padStart(2, "0")}</span>
@@ -119,42 +117,6 @@ export default async function Landing() {
         </div>
       </section>
 
-      <section id="planos" className="mx-auto flex max-w-[1200px] scroll-mt-20 flex-col gap-10 px-4 py-20 sm:px-6">
-        <div className="flex max-w-2xl flex-col gap-3">
-          <span className="label-mono text-ciano">{"// Planos"}</span>
-          <h2 className="display text-[32px] sm:text-[40px]">Você faz ou a gente faz</h2>
-          <p className="text-[17px] text-muted">No Básico, você monta tudo pelo painel. No Completo, a equipe Unlock cuida do seu cardápio inteiro, com vídeos 3D dos seus produtos.</p>
-        </div>
-        <div className="grid gap-5 md:grid-cols-2">
-          {plans.map((p) => {
-            const f = parseFeatures(p.features);
-            const hl = f.managedByUnlock;
-            return (
-              <article key={p.id} className={`relative flex flex-col gap-6 rounded-3xl border p-7 ${hl ? "border-brasa bg-carvao" : "border-line bg-grafite-2"}`}>
-                {hl && <span className="label-mono absolute -top-3 left-7 rounded-full bg-brasa px-3 py-1.5 !text-[11px] font-semibold text-grafite">Mais completo</span>}
-                <div className="flex flex-col gap-2">
-                  <h3 className="display text-[26px]">{p.name}</h3>
-                  {p.headline && <p className="text-[15px] text-muted">{p.headline}</p>}
-                </div>
-                <p className="flex items-baseline gap-1.5">
-                  {p.priceCents != null ? (
-                    <><span className="display text-[40px] tabular-nums">{formatBRL(p.priceCents)}</span><span className="text-muted">/mês</span></>
-                  ) : (
-                    <span className="display text-[28px]">Sob consulta</span>
-                  )}
-                </p>
-                <ul className="flex flex-col gap-2.5">
-                  {p.highlights.map((h) => <li key={h} className="flex items-start gap-2.5 text-[15px]"><Icon name="check" size={18} className={`mt-0.5 ${hl ? "text-brasa" : "text-limao"}`} />{h}</li>)}
-                </ul>
-                <Link href={`/cadastro?plano=${p.code}`} className={`mt-auto inline-flex h-14 items-center justify-center rounded-2xl text-base font-semibold ${hl ? "bg-brasa text-grafite hover:bg-[#FF8259]" : "border border-line-2 hover:bg-carvao"}`}>
-                  Começar com o {p.name}
-                </Link>
-              </article>
-            );
-          })}
-        </div>
-      </section>
-
       <section className="border-t border-line">
         <div className="mx-auto flex max-w-[860px] flex-col gap-8 px-4 py-20 sm:px-6">
           <h2 className="display text-[32px] sm:text-[40px]">Perguntas frequentes</h2>
@@ -174,8 +136,8 @@ export default async function Landing() {
       <section className="grid-bg border-t border-line">
         <div className="mx-auto flex max-w-[1200px] flex-col items-start gap-6 px-4 py-20 sm:px-6">
           <h2 className="display text-[36px] leading-none sm:text-[52px]">Seu cardápio no ar hoje.</h2>
-          <p className="text-lg text-muted">Sem programador, sem complicação.</p>
-          <Link href="/cadastro" className="inline-flex h-14 items-center gap-2 rounded-2xl bg-brasa px-6 text-base font-semibold text-grafite hover:bg-[#FF8259]">Criar minha conta<Icon name="chevronRight" /></Link>
+          <p className="text-lg text-muted">A Unlock monta tudo para você.</p>
+          <a href={contact} target="_blank" rel="noopener noreferrer" className={ctaCls}>Quero meu cardápio<Icon name="chevronRight" /></a>
         </div>
       </section>
 

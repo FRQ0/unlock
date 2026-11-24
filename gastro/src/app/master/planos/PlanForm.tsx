@@ -30,7 +30,7 @@ export function PlanForm({ plan }: { plan: P }) {
           <Toggle label="Feed de vídeos" hint="Libera vídeos e o feed vertical no cardápio." name="videoFeed" defaultChecked={plan.videoFeed} />
           <Toggle label="Unlock faz tudo" hint="Marca o cliente como gerenciado pela equipe." name="managedByUnlock" defaultChecked={plan.managedByUnlock} />
           <Field label="Limite de produtos" name="maxProducts" type="number" min={0} defaultValue={plan.maxProducts} hint="0 = ilimitado." />
-          <Toggle label="Plano à venda" hint="Desligado, some da página e do cadastro." name="active" defaultChecked={plan.active} />
+          <Toggle label="Plano à venda" hint="Desligado, não aparece para escolher ao criar estabelecimentos." name="active" defaultChecked={plan.active} />
         </div>
         <div className="flex justify-end"><SubmitButton pendingText="Salvando...">Salvar plano</SubmitButton></div>
       </form>

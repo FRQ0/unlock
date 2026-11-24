@@ -12,7 +12,7 @@ import { setPublishedAction } from "./actions";
 
 export default async function Dashboard() {
   const { user, tenant } = await requirePanel();
-  if (user.role === "STAFF") redirect("/painel/pedidos");
+  if (user.role === "STAFF") redirect("/painel/garcom");
   const today = startOfTodayBR();
   const weekAgo = daysAgo(todayDateBR(), 6);
   const t = tenant.id;

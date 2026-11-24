@@ -20,33 +20,33 @@ function beep() {
 }
 
 /** Avisa (som + título da aba) quando chega pedido novo. */
-export function NewOrderAlert({ newCount, latestId }: { newCount: number; latestId: string | null }) {
+export function NewOrderAlert({ newCount, latestId, title = "Novos pedidos", idleTitle = "Pedidos", storageKey = "ug_order_sound", offLabel = "Ligar som de pedido novo" }: { newCount: number; latestId: string | null; title?: string; idleTitle?: string; storageKey?: string; offLabel?: string }) {
   const [sound, setSound] = useState(false);
   const last = useRef<string | null>(latestId);
 
   useEffect(() => {
-    try { setSound(localStorage.getItem("ug_order_sound") === "1"); } catch {}
-  }, []);
+    try { setSound(localStorage.getItem(storageKey) === "1"); } catch {}
+  }, [storageKey]);
 
   useEffect(() => {
-    document.title = newCount ? `(${newCount}) Novos pedidos · Unlock Gastro` : "Pedidos · Unlock Gastro";
+    document.title = newCount ? `(${newCount}) ${title} · Unlock Gastro` : `${idleTitle} · Unlock Gastro`;
     if (latestId && latestId !== last.current) {
       if (sound) beep();
       if ("vibrate" in navigator) navigator.vibrate?.(200);
     }
     last.current = latestId;
-  }, [newCount, latestId, sound]);
+  }, [newCount, latestId, sound, title, idleTitle]);
 
   const toggle = () => {
     const v = !sound;
     setSound(v);
-    try { localStorage.setItem("ug_order_sound", v ? "1" : "0"); } catch {}
+    try { localStorage.setItem(storageKey, v ? "1" : "0"); } catch {}
     if (v) beep();
   };
 
   return (
     <button type="button" onClick={toggle} aria-pressed={sound} className={`inline-flex h-12 items-center gap-2 rounded-xl border px-4 text-[15px] font-semibold ${sound ? "border-[#C9E68A] bg-[#E9F8C4] text-[#2F4700]" : "border-paper-line-2 hover:bg-black/5"}`}>
-      <Icon name={sound ? "sound" : "mute"} />{sound ? "Som ligado" : "Ligar som de pedido novo"}
+      <Icon name={sound ? "sound" : "mute"} />{sound ? "Som ligado" : offLabel}
     </button>
   );
 }

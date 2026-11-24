@@ -103,11 +103,13 @@ test.describe("permissões e rotas protegidas", () => {
     await expect(page).toHaveURL(/\/painel$/);
   });
 
-  test("funcionário só acessa pedidos", async ({ page }) => {
+  test("garçom só acessa garçom e pedidos", async ({ page }) => {
     await login(page, f.A.staff.email);
     await page.goto("/painel/produtos");
-    await expect(page).toHaveURL(/\/painel\/pedidos/);
+    await expect(page).toHaveURL(/\/painel\/garcom/);
     await page.goto("/painel/aparencia");
+    await expect(page).toHaveURL(/\/painel\/garcom/);
+    await page.goto("/painel/pedidos");
     await expect(page).toHaveURL(/\/painel\/pedidos/);
     const res = await page.request.get("/api/painel/exportar");
     expect(res.status()).toBe(401);
@@ -207,5 +209,44 @@ test.describe("exclusão definitiva (Master)", () => {
     await page.click("button:has-text('Excluir definitivamente')");
     await page.waitForURL("**/master/estabelecimentos?excluido=1");
     expect(await prisma.tenant.findUnique({ where: { id: t.id } })).toBeNull();
+  });
+});
+
+test.describe("garçom", () => {
+  test("lança pedido para a mesa e marca como servido", async ({ page }) => {
+    await login(page, f.A.staff.email);
+    await page.goto("/painel/garcom");
+    await page.fill("#mesa", "9");
+    await page.click("button:has-text('Fazer pedido')");
+    await page.waitForURL(/mesa=9/);
+    await expect(page.getByText("Modo garçom · pedido para a mesa 9")).toBeVisible();
+    await page.click(`button[aria-label="Adicionar ${f.A.product.name}"]`);
+    await page.click("[role=dialog] button:has-text('Adicionar')");
+    await page.click("button:has-text('Ver pedido')");
+    await expect(page.locator("input[autocomplete=name]")).toHaveValue("Mesa 9");
+    await page.click("button:has-text('Enviar pedido')");
+    await page.waitForURL("**/painel/garcom?enviado=1");
+    const order = await db.order.findFirstOrThrow({ where: { tenantId: f.A.tenant.id, tableNumber: "9" } });
+    await db.order.update({ where: { id: order.id }, data: { status: "READY" } });
+    await page.goto("/painel/garcom");
+    await page.locator("article:has-text('Mesa 9') button:has-text('Servido')").click();
+    await page.waitForTimeout(1200);
+    expect((await db.order.findUniqueOrThrow({ where: { id: order.id } })).status).toBe("COMPLETED");
+  });
+
+  test("cliente não ativa o modo garçom pelo link", async ({ page }) => {
+    await page.goto(`/${f.A.tenant.slug}?mesa=4&garcom=1`);
+    await expect(page.getByText("Você está na mesa 4")).toBeVisible();
+    await expect(page.getByText("Modo garçom")).toHaveCount(0);
+    await page.click(`button[aria-label="Adicionar ${f.A.product.name}"]`);
+    await page.click("[role=dialog] button:has-text('Adicionar')");
+    await page.click("button:has-text('Ver pedido')");
+    await expect(page.locator("button:has-text('Enviar pedido')")).toBeDisabled(); // falta o consentimento
+  });
+
+  test("dono de outro estabelecimento não ativa o modo garçom", async ({ page }) => {
+    await login(page, f.B.owner.email);
+    await page.goto(`/${f.A.tenant.slug}?mesa=4&garcom=1`);
+    await expect(page.getByText("Modo garçom")).toHaveCount(0);
   });
 });

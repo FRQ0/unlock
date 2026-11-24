@@ -1,6 +1,5 @@
 "use server";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requireOwnerPanel } from "@/lib/session";
 import { gateway } from "@/lib/payments";
@@ -8,17 +7,6 @@ import { appUrl } from "@/lib/urls";
 import { audit } from "@/lib/audit";
 
 export type SubState = { error?: string } | undefined;
-
-/** Enquanto a assinatura não foi paga, o dono pode trocar de plano livremente. */
-export async function choosePlanAction(form: FormData) {
-  const { user, tenant } = await requireOwnerPanel();
-  const plan = await db.plan.findFirst({ where: { code: String(form.get("plan") ?? ""), active: true } });
-  const sub = await db.subscription.findUnique({ where: { tenantId: tenant.id } });
-  if (!plan || !sub || sub.status !== "PENDING") return;
-  await db.subscription.update({ where: { id: sub.id }, data: { planId: plan.id } });
-  await audit("subscription.change_plan", { actorId: user.id, tenantId: tenant.id, meta: { plan: plan.code } });
-  revalidatePath("/painel", "layout");
-}
 
 export async function startCheckoutAction(_: SubState): Promise<SubState> {
   const { user, tenant } = await requireOwnerPanel();

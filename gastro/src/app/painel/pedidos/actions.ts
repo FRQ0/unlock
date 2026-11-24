@@ -13,7 +13,7 @@ const FLOW: Record<string, string[]> = {
   CANCELED: [],
 };
 
-// Funcionários (STAFF) também podem mudar o status dos pedidos.
+// Garçons (STAFF) também podem mudar o status dos pedidos.
 export async function setOrderStatusAction(form: FormData) {
   const { user, tenant } = await requirePanel();
   const id = String(form.get("id") ?? "");
@@ -23,5 +23,6 @@ export async function setOrderStatusAction(form: FormData) {
   await db.order.update({ where: { id: order.id }, data: { status } });
   if (status === "CANCELED") await audit("order.cancel", { actorId: user.id, tenantId: tenant.id, meta: { orderId: id } });
   revalidatePath("/painel/pedidos");
+  revalidatePath("/painel/garcom");
   revalidatePath("/painel", "layout");
 }

@@ -47,7 +47,7 @@ export const requirePanel = cache(async (): Promise<PanelContext> => {
 /** Somente o dono (ou a Unlock) pode mexer em cardápio, aparência e assinatura. */
 export async function requireOwnerPanel(): Promise<PanelContext> {
   const ctx = await requirePanel();
-  if (ctx.user.role === "STAFF") redirect("/painel/pedidos");
+  if (ctx.user.role === "STAFF") redirect("/painel/garcom");
   return ctx;
 }
 

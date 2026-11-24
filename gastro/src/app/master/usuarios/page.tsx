@@ -9,7 +9,7 @@ import { toggleUserActiveAction } from "../actions";
 import { CreateUserForm, ResetPasswordForm } from "./Forms";
 
 export const metadata: Metadata = { title: "Usuários" };
-const ROLE = { MASTER: "Unlock", OWNER: "Dono", STAFF: "Funcionário" } as const;
+const ROLE = { MASTER: "Unlock", OWNER: "Dono", STAFF: "Garçom" } as const;
 
 export default async function UsersPage({ searchParams }: { searchParams: Promise<{ q?: string; tenant?: string }> }) {
   const me = await requireMaster();

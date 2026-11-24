@@ -15,10 +15,14 @@ export default async function PanelLayout({ children }: { children: React.ReactN
 
   const items: NavItem[] =
     user.role === "STAFF"
-      ? [{ href: "/painel/pedidos", label: "Pedidos", icon: "bag", badge: newOrders }]
+      ? [
+          { href: "/painel/garcom", label: "Garçom", icon: "users" },
+          { href: "/painel/pedidos", label: "Pedidos", icon: "bag", badge: newOrders },
+        ]
       : [
           { href: "/painel", label: "Início", icon: "dashboard" },
           { href: "/painel/pedidos", label: "Pedidos", icon: "bag", badge: newOrders },
+          { href: "/painel/garcom", label: "Garçom", icon: "users" },
           { href: "/painel/produtos", label: "Produtos", icon: "cutlery" },
           { href: "/painel/categorias", label: "Categorias", icon: "list" },
           { href: "/painel/aparencia", label: "Aparência", icon: "palette" },

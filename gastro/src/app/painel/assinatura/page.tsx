@@ -4,11 +4,8 @@ import { requireOwnerPanel } from "@/lib/session";
 import { formatBRL } from "@/lib/money";
 import { fmtDate } from "@/lib/dates";
 import { gateway } from "@/lib/payments";
-import { parseFeatures } from "@/lib/plans";
 import { Alert, Card, PageHeader, Pill } from "@/components/ui/Feedback";
-import { SubmitButton } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
-import { choosePlanAction } from "./actions";
 import { CheckoutButton } from "./CheckoutButton";
 
 export const metadata: Metadata = { title: "Assinatura" };
@@ -23,10 +20,7 @@ const SUB_STATUS = {
 export default async function SubscriptionPage({ searchParams }: { searchParams: Promise<{ bemvindo?: string }> }) {
   const { tenant } = await requireOwnerPanel();
   const { bemvindo } = await searchParams;
-  const [sub, plans] = await Promise.all([
-    db.subscription.findUnique({ where: { tenantId: tenant.id }, include: { plan: true, payments: { orderBy: { createdAt: "desc" }, take: 24 } } }),
-    db.plan.findMany({ where: { active: true }, orderBy: { sortOrder: "asc" } }),
-  ]);
+  const sub = await db.subscription.findUnique({ where: { tenantId: tenant.id }, include: { plan: true, payments: { orderBy: { createdAt: "desc" }, take: 24 } } });
   const gw = gateway();
   const whatsapp = process.env.NEXT_PUBLIC_UNLOCK_WHATSAPP?.replace(/\D/g, "");
   const st = sub ? SUB_STATUS[sub.status] : null;
@@ -34,7 +28,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
   return (
     <>
       <PageHeader kicker="Assinatura" title="Assinatura" subtitle="Seu plano, situação do pagamento e histórico." />
-      {bemvindo && <Alert tone="success">Conta criada! Agora é só montar o cardápio. Ele vai ao ar quando a assinatura for ativada.</Alert>}
+      {bemvindo && <Alert tone="success">Bem-vindo! Seu cardápio vai ao ar quando a assinatura for ativada.</Alert>}
 
       {sub && st && (
         <Card className="flex flex-col gap-5">
@@ -64,28 +58,6 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
             {sub.plan.highlights.map((h) => <li key={h} className="flex items-start gap-2 text-[15px]"><Icon name="check" size={18} className="mt-0.5 text-[#3B5A00]" />{h}</li>)}
           </ul>
         </Card>
-      )}
-
-      {sub?.status === "PENDING" && plans.length > 1 && (
-        <section className="flex flex-col gap-3">
-          <h2 className="text-lg font-semibold">Trocar de plano</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            {plans.map((p) => {
-              const f = parseFeatures(p.features);
-              const current = p.id === sub.planId;
-              return (
-                <Card key={p.id} className={`flex flex-col gap-3 ${current ? "!border-brasa ring-2 ring-brasa/25" : ""}`}>
-                  <div className="flex items-baseline justify-between gap-2"><span className="text-lg font-semibold">{p.name}</span><span className="font-semibold">{p.priceCents != null ? `${formatBRL(p.priceCents)}/mês` : "Sob consulta"}</span></div>
-                  {p.headline && <p className="text-[15px] text-ink-muted">{p.headline}</p>}
-                  <div className="flex flex-wrap gap-1.5">{f.managedByUnlock && <Pill tone="brasa">Unlock faz tudo</Pill>}{f.videoFeed && <Pill>Feed de vídeos</Pill>}</div>
-                  {current ? <Pill tone="green">Plano escolhido</Pill> : (
-                    <form action={choosePlanAction}><input type="hidden" name="plan" value={p.code} /><SubmitButton variant="secondary" pendingText="...">Escolher {p.name}</SubmitButton></form>
-                  )}
-                </Card>
-              );
-            })}
-          </div>
-        </section>
       )}
 
       <Card>

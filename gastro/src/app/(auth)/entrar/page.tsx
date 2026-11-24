@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { unlockContactUrl } from "@/lib/contact";
 import { LoginForm } from "./LoginForm";
 
 export const metadata: Metadata = { title: "Entrar" };
@@ -15,7 +15,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       </div>
       <LoginForm next={next} initialError={erro === "conta" ? "Esta conta não está disponível. Fale com a Unlock." : undefined} />
       <p className="text-[15px] text-ink-muted">
-        Ainda não tem conta? <Link href="/cadastro" className="font-semibold text-brasa-ink underline-offset-4 hover:underline">Cadastre seu estabelecimento</Link>
+        O acesso é criado pela Unlock. Ainda não é cliente? <a href={unlockContactUrl()} target="_blank" rel="noopener noreferrer" className="font-semibold text-brasa-ink underline-offset-4 hover:underline">Fale com a gente</a>
       </p>
     </div>
   );

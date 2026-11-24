@@ -33,7 +33,7 @@ async function noHorizontalScroll(page: import("@playwright/test").Page, name: s
   expect(sw, `${name}: largura ${sw} > tela ${w}`).toBeLessThanOrEqual(w + 1);
 }
 
-const PUBLIC = ["/", "/entrar", "/cadastro", "/privacidade", "/termos"];
+const PUBLIC = ["/", "/entrar", "/privacidade", "/termos"];
 
 for (const width of [360, 412]) {
   test.describe(`largura ${width}px`, () => {
@@ -60,7 +60,7 @@ for (const width of [360, 412]) {
 
     test("painel do estabelecimento", async ({ page }) => {
       await loginOnce(page, f.A.owner.email);
-      for (const url of ["/painel", "/painel/pedidos", "/painel/pedidos?aba=historico", "/painel/produtos", "/painel/produtos/novo", `/painel/produtos/${f.A.product.id}`, "/painel/categorias", "/painel/aparencia", "/painel/plaquinha", "/painel/assinatura", "/painel/configuracoes"]) {
+      for (const url of ["/painel", "/painel/garcom", "/painel/pedidos", "/painel/pedidos?aba=historico", "/painel/produtos", "/painel/produtos/novo", `/painel/produtos/${f.A.product.id}`, "/painel/categorias", "/painel/aparencia", "/painel/plaquinha", "/painel/assinatura", "/painel/configuracoes"]) {
         await page.goto(url);
         await noHorizontalScroll(page, `${width}-painel${url.replace(/[/?=]/g, "_")}`);
       }

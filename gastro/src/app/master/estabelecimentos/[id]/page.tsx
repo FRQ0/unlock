@@ -104,7 +104,7 @@ export default async function TenantDetail({ params, searchParams }: { params: P
           <Card className="flex flex-col gap-3">
             <div className="flex items-center justify-between"><h2 className="text-lg font-semibold">Usuários</h2><Link href={`/master/usuarios?tenant=${t.id}`} className="text-sm font-semibold text-brasa-ink">Gerenciar</Link></div>
             <ul className="flex flex-col divide-y divide-paper-line text-[15px]">
-              {t.users.map((u) => <li key={u.id} className="flex flex-wrap items-center justify-between gap-2 py-2"><span>{u.name}<span className="block text-[13px] text-ink-muted">{u.email}</span></span><span className="flex gap-1.5"><Pill>{u.role === "OWNER" ? "Dono" : "Funcionário"}</Pill>{!u.active && <Pill tone="red">Desativado</Pill>}</span></li>)}
+              {t.users.map((u) => <li key={u.id} className="flex flex-wrap items-center justify-between gap-2 py-2"><span>{u.name}<span className="block text-[13px] text-ink-muted">{u.email}</span></span><span className="flex gap-1.5"><Pill>{u.role === "OWNER" ? "Dono" : "Garçom"}</Pill>{!u.active && <Pill tone="red">Desativado</Pill>}</span></li>)}
             </ul>
           </Card>
         </div>

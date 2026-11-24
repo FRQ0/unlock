@@ -19,7 +19,7 @@ export function CreateUserForm({ tenants, defaultTenant }: { tenants: { id: stri
           <Field label="E-mail" name="email" type="email" required />
           <Select label="Tipo de acesso" name="role" value={role} onChange={(e) => setRole(e.target.value)}>
             <option value="OWNER">Dono do estabelecimento</option>
-            <option value="STAFF">Funcionário (só pedidos)</option>
+            <option value="STAFF">Garçom / atendente (mesas e pedidos)</option>
             <option value="MASTER">Equipe Unlock (Master)</option>
           </Select>
           {role !== "MASTER" && (
