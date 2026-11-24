@@ -105,12 +105,12 @@ npm run test:e2e              # segurança entre estabelecimentos e responsivida
    - `NEXT_PUBLIC_APP_URL`: ex.: `https://unlockgastro.com.br`
    - `STORAGE_DRIVER`: `vercel-blob`
    - `PAYMENT_PROVIDER`: `none`
+   - `MASTER_EMAIL` e `MASTER_PASSWORD` (10+ caracteres): o seu acesso ao Painel Master
    - opcionais: `NEXT_PUBLIC_UNLOCK_WHATSAPP` (botão "Falar com a Unlock" na
      assinatura) e `NEXT_PUBLIC_CONTACT_EMAIL` (contato nas páginas legais)
-5. Faça o deploy. O build roda as migrações sozinho (`vercel-build`).
-6. Uma vez, rode o seed apontando para o banco de produção, com
-   `MASTER_EMAIL` e `MASTER_PASSWORD`: `npm run db:seed`.
-7. Aponte o domínio `unlockgastro.com.br` para o projeto.
+5. Faça o deploy. O build cria as tabelas, os planos e o usuário Master
+   sozinho (`vercel-build`). Rodar de novo não duplica nada.
+6. Aponte o domínio `unlockgastro.com.br` para o projeto.
 
 > O link de cada cardápio (`NEXT_PUBLIC_APP_URL/{endereco}`) vai gravado nas
 > plaquinhas NFC e nos QR Codes. Defina o domínio definitivo **antes** de
