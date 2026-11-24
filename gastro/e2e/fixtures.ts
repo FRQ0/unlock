@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import crypto from "node:crypto";
-import type { Page } from "@playwright/test";
+import type { Cookie, Page } from "@playwright/test";
 
 export const db = new PrismaClient();
 export const PASSWORD = "senha-de-teste-123";
@@ -50,6 +50,19 @@ export async function login(page: Page, email: string) {
   await page.fill("input[name=password]", PASSWORD);
   await page.click("button[type=submit]");
   await page.waitForURL(/\/(painel|master)/);
+}
+
+const sessions = new Map<string, Cookie[]>();
+
+/** Faz login uma vez por usuário e reaproveita o cookie (evita o limite de tentativas de login). */
+export async function loginOnce(page: Page, email: string) {
+  const saved = sessions.get(email);
+  if (saved) {
+    await page.context().addCookies(saved);
+    return;
+  }
+  await login(page, email);
+  sessions.set(email, await page.context().cookies());
 }
 
 /** Simula um atacante trocando o valor de um campo oculto antes de enviar. */

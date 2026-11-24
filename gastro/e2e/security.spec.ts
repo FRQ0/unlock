@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createFixtures, db, destroyFixtures, login, tamper } from "./fixtures";
+import { createFixtures, db, destroyFixtures, loginOnce as login, tamper } from "./fixtures";
 
 type F = Awaited<ReturnType<typeof createFixtures>>;
 let f: F;
@@ -175,7 +175,7 @@ test.describe("cardápio público e pedidos", () => {
     await page.fill("input[inputmode=numeric]", "4");
     await page.check("[role=dialog] input[type=checkbox]");
     await page.click("button:has-text('Enviar pedido')");
-    await expect(page.getByRole("alert")).toContainText("não está mais no cardápio");
+    await expect(page.getByText("Um dos produtos não está mais no cardápio")).toBeVisible();
     expect(await db.order.count({ where: { customerName: "Cliente Invasor" } })).toBe(0);
   });
 

@@ -9,6 +9,7 @@ import { SubmitButton } from "@/components/ui/Button";
 import { Alert, Card } from "@/components/ui/Feedback";
 import { MediaInput } from "@/components/panel/MediaInput";
 import { MenuShell, MenuView } from "@/components/menu/MenuView";
+import { Icon } from "@/components/ui/Icon";
 
 type Values = {
   name: string; menuName: string; tagline: string; description: string;
@@ -44,6 +45,7 @@ export function AppearanceForm({ menu, initial, driver, tenantId }: { menu: Menu
   const [state, action] = useActionState(saveAppearanceAction, undefined);
   const [v, setV] = useState<Values>(initial);
   const [presetKey, setPresetKey] = useState(0);
+  const [showPreview, setShowPreview] = useState(false);
   const set = <K extends keyof Values>(k: K, val: Values[K]) => setV((s) => ({ ...s, [k]: val }));
   const dirty = JSON.stringify(v) !== JSON.stringify(initial);
 
@@ -118,10 +120,10 @@ export function AppearanceForm({ menu, initial, driver, tenantId }: { menu: Menu
             <legend className="mb-2 text-sm font-medium">Cartões dos produtos</legend>
             <div className="grid grid-cols-3 gap-2">
               {([["ROUNDED", "Arredondado", "14px"], ["SQUARE", "Reto", "4px"], ["PILL", "Bem redondo", "24px"]] as const).map(([val, l, r]) => (
-                <label key={val} className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-paper-line-2 bg-white p-3.5 text-center has-[:checked]:border-brasa has-[:checked]:ring-2 has-[:checked]:ring-brasa/25">
+                <label key={val} className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-paper-line-2 bg-white px-1.5 py-3.5 text-center has-[:checked]:border-brasa has-[:checked]:ring-2 has-[:checked]:ring-brasa/25">
                   <input type="radio" name="cardStyle" value={val} checked={v.cardStyle === val} onChange={() => set("cardStyle", val)} className="sr-only" />
                   <span className="h-9 w-14 border-2 border-ink" style={{ borderRadius: r }} />
-                  <span className="text-sm font-semibold">{l}</span>
+                  <span className="text-[13px] font-semibold leading-tight sm:text-sm">{l}</span>
                 </label>
               ))}
             </div>
@@ -129,15 +131,30 @@ export function AppearanceForm({ menu, initial, driver, tenantId }: { menu: Menu
         </Card>
 
         <div className="sticky bottom-0 -mx-4 flex items-center justify-between gap-3 border-t border-paper-line bg-gelo/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border sm:px-5">
-          <span className="text-sm text-ink-muted">{dirty ? "Alterações não salvas" : "Tudo salvo"}</span>
-          <SubmitButton pendingText="Salvando..." disabled={!dirty}>Salvar aparência</SubmitButton>
+          <span className="hidden text-sm text-ink-muted sm:inline">{dirty ? "Alterações não salvas" : "Tudo salvo"}</span>
+          <button type="button" onClick={() => setShowPreview(true)} className="inline-flex h-12 items-center gap-2 rounded-xl border border-paper-line-2 px-4 text-[15px] font-semibold xl:hidden">
+            <Icon name="eye" />Ver prévia
+          </button>
+          <SubmitButton pendingText="Salvando..." disabled={!dirty}>Salvar</SubmitButton>
         </div>
       </div>
 
-      <aside className="xl:sticky xl:top-6" aria-label="Prévia do cardápio">
-        <p className="label-mono mb-3 text-ink-muted">{"// Prévia ao vivo"}</p>
+      <aside
+        className={showPreview ? "fixed inset-0 z-50 overflow-y-auto bg-black/80 p-4 backdrop-blur-sm" : "hidden xl:sticky xl:top-6 xl:block"}
+        aria-label="Prévia do cardápio"
+        role={showPreview ? "dialog" : undefined}
+        aria-modal={showPreview || undefined}
+      >
+        <div className="mb-3 flex items-center justify-between">
+          <p className={`label-mono ${showPreview ? "text-gelo" : "text-ink-muted"}`}>{"// Prévia ao vivo"}</p>
+          {showPreview && (
+            <button type="button" onClick={() => setShowPreview(false)} className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 font-semibold text-ink">
+              <Icon name="close" size={18} />Voltar a editar
+            </button>
+          )}
+        </div>
         <div className="mx-auto w-full max-w-[380px] overflow-hidden rounded-[36px] border-[10px] border-grafite bg-grafite shadow-xl">
-          <div className="h-[680px] overflow-y-auto overscroll-contain rounded-[26px]">
+          <div className={`${showPreview ? "h-[calc(100dvh-110px)]" : "h-[680px]"} overflow-y-auto overscroll-contain rounded-[26px]`}>
             <MenuShell data={preview} className="min-h-full">
               <MenuView data={preview} preview />
             </MenuShell>

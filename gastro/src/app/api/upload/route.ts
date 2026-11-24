@@ -11,6 +11,7 @@ export const runtime = "nodejs";
 export async function POST(req: Request) {
   if (!isSameOrigin(req)) return NextResponse.json({ error: "Origem não permitida." }, { status: 403 });
   if (storageDriver() !== "local") return NextResponse.json({ error: "Envio local desativado." }, { status: 400 });
+  if (process.env.VERCEL) return NextResponse.json({ error: "Armazenamento não configurado. Defina STORAGE_DRIVER=vercel-blob." }, { status: 500 });
   const ctx = await panelContextOrNull();
   if (!ctx) return NextResponse.json({ error: "Faça login novamente." }, { status: 401 });
   if (!rateLimit(`upload:${ctx.tenant.id}`, 60, 10 * 60_000)) return NextResponse.json({ error: "Muitos envios seguidos. Aguarde um pouco." }, { status: 429 });

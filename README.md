@@ -18,3 +18,9 @@ Cada `git push` na branch `main` atualiza o site sozinho.
 - **WhatsApp:** no `index.html`, procure `const WHATSAPP = '';` e coloque o número com DDD, ex.: `'34999999999'`.
 - **Projetos:** no `index.html`, procure `const FALLBACK = [`. Cada projeto tem título, tipo, descrição, destaques (`tags`), link e imagem (`img`).
 - **Imagens dos projetos:** ficam em `img/projetos/`. Use imagem 1600x1000.
+
+## Unlock Gastro
+
+A plataforma de cardápio digital fica em [`gastro/`](gastro/README.md). É um app
+separado (Next.js + PostgreSQL), publicado em outro projeto da Vercel com
+**Root Directory = `gastro`**. Este site estático continua igual.

@@ -57,7 +57,7 @@ export default async function PlaquePage() {
               ].map(([t, d], i) => (
                 <li key={i} className="flex gap-3">
                   <span className="label-mono flex h-7 w-7 flex-none items-center justify-center rounded-full bg-brasa-soft !text-[11px] text-[#9A2E0B]">{String(i + 1).padStart(2, "0")}</span>
-                  <span className="flex flex-col gap-0.5"><strong className="font-semibold">{t}</strong><span className="break-all text-[14px] text-ink-muted">{d}</span></span>
+                  <span className="flex flex-col gap-0.5"><strong className="font-semibold">{t}</strong><span className="text-[14px] text-ink-muted [overflow-wrap:break-word]">{d}</span></span>
                 </li>
               ))}
             </ol>
