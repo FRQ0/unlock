@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+  --color-grafite: #0D0F12;
+  --color-grafite-2: #14181E;
+  --color-carvao: #1C2128;
+  --color-line: #262C35;
+  --color-line-2: #3A4250;
+  --color-brasa: #FF6A3D;
+  --color-brasa-ink: #C2410C;
+  --color-brasa-soft: #FFE3D8;
+  --color-gelo: #F4F4EF;
+  --color-limao: #C8F542;
+  --color-ciano: #5CE1E6;
+  --color-muted: #A9B0BA;
+  --color-ink: #14171C;
+  --color-ink-muted: #5B636E;
+  --color-paper: #FFFFFF;
+  --color-paper-line: #E4E4DD;
+  --color-paper-line-2: #C9CCC4;
+
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-mono-jb), ui-monospace, Menlo, monospace;
+  --font-display: var(--font-archivo), "Arial Black", system-ui, sans-serif;
+}
+
+@utility display {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+@utility label-mono {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 12px;
+}
+
+@utility grid-bg {
+  background-image:
+    linear-gradient(rgba(244, 244, 239, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(244, 244, 239, 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body { @apply bg-gelo text-ink font-sans antialiased; }
+  :focus-visible { outline: 2px solid var(--color-brasa); outline-offset: 2px; }
+  input, select, textarea, button { font: inherit; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }

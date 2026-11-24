@@ -1,0 +1,346 @@
+// Unlock Gastro — esquema multi-tenant.
+// Regra de ouro: toda tabela com dados de um estabelecimento tem `tenantId`
+// e toda consulta do painel filtra por ele (ver src/lib/tenant.ts).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  MASTER // equipe da Unlock Systems
+  OWNER  // dono do estabelecimento
+  STAFF  // funcionário do estabelecimento (pedidos)
+}
+
+enum TenantStatus {
+  PENDING_PAYMENT // conta criada, assinatura ainda não confirmada
+  ACTIVE
+  SUSPENDED // desativado pela Unlock (ex.: inadimplência)
+  CANCELED
+}
+
+enum SubscriptionStatus {
+  PENDING // aguardando primeiro pagamento
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum CardStyle {
+  ROUNDED
+  SQUARE
+  PILL
+}
+
+enum Appearance {
+  DARK
+  LIGHT
+}
+
+enum OptionGroupType {
+  SINGLE   // escolha uma (tamanho, ponto da carne)
+  MULTIPLE // escolha várias (adicionais, sabores)
+}
+
+enum OrderStatus {
+  NEW
+  PREPARING
+  READY
+  COMPLETED
+  CANCELED
+}
+
+enum ServiceMode {
+  DINE_IN
+  PICKUP
+  DELIVERY
+}
+
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  name             String
+  passwordHash     String
+  role             Role      @default(OWNER)
+  tenantId         String?
+  tenant           Tenant?   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  active           Boolean   @default(true)
+  termsAcceptedAt  DateTime?
+  lastLoginAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  auditLogs        AuditLog[]
+
+  @@index([tenantId])
+}
+
+model Tenant {
+  id            String       @id @default(cuid())
+  slug          String       @unique
+  name          String
+  businessType  String       @default("restaurante")
+  status        TenantStatus @default(PENDING_PAYMENT)
+  published     Boolean      @default(false)
+  orderSeq      Int          @default(0)
+
+  // Identidade visual do cardápio (tudo configurável pelo dono)
+  menuName       String?
+  tagline        String?
+  description    String?
+  logoUrl        String?
+  coverUrl       String?
+  primaryColor   String     @default("#FF6A3D")
+  secondaryColor String     @default("#1C2128")
+  buttonColor    String     @default("#FF6A3D")
+  cardStyle      CardStyle  @default(ROUNDED)
+  appearance     Appearance @default(DARK)
+
+  // Contato e endereço
+  phone        String?
+  whatsapp     String?
+  instagram    String?
+  addressLine  String?
+  addressCity  String?
+  addressState String?
+  addressZip   String?
+
+  // Horário: { mon: [{open:"18:00", close:"23:00"}], ... }
+  openingHours Json?
+
+  // Modalidades de atendimento
+  acceptsDineIn   Boolean @default(true)
+  acceptsPickup   Boolean @default(false)
+  acceptsDelivery Boolean @default(false)
+  deliveryFeeCents Int    @default(0)
+  minOrderCents    Int    @default(0)
+  acceptsOrders    Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users         User[]
+  subscription  Subscription?
+  categories    Category[]
+  products      Product[]
+  optionGroups  OptionGroup[]
+  options       Option[]
+  orders        Order[]
+  orderItems    OrderItem[]
+  productViews  ProductViewDay[]
+  media         MediaAsset[]
+  auditLogs     AuditLog[]
+}
+
+model Plan {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  headline    String?
+  description String?
+  // null = preço ainda não definido pela Unlock (a página mostra "Consulte")
+  priceCents  Int?
+  // Recursos do plano: { videoFeed, managedByUnlock, maxProducts, ... }
+  features    Json
+  highlights  String[]
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id               String             @id @default(cuid())
+  tenantId         String             @unique
+  tenant           Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  planId           String
+  plan             Plan               @relation(fields: [planId], references: [id])
+  status           SubscriptionStatus @default(PENDING)
+  // "none" | "manual" | "asaas" | "mercadopago" | ...
+  provider         String             @default("none")
+  providerRef      String?
+  currentPeriodEnd DateTime?
+  canceledAt       DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  payments         Payment[]
+}
+
+model Payment {
+  id             String        @id @default(cuid())
+  subscriptionId String
+  subscription   Subscription  @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  amountCents    Int
+  status         PaymentStatus @default(PENDING)
+  provider       String
+  providerRef    String?
+  method         String?
+  note           String?
+  paidAt         DateTime?
+  createdAt      DateTime      @default(now())
+
+  @@index([subscriptionId])
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  tenantId  String
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  sortOrder Int       @default(0)
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  products  Product[]
+
+  @@index([tenantId, sortOrder])
+}
+
+model Product {
+  id          String    @id @default(cuid())
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  name        String
+  description String?
+  priceCents  Int
+  imageUrl    String?
+  videoUrl    String?
+  available   Boolean   @default(true)
+  featured    Boolean   @default(false)
+  sortOrder   Int       @default(0)
+  viewCount   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  optionGroups OptionGroup[]
+  views        ProductViewDay[]
+
+  @@index([tenantId, categoryId, sortOrder])
+}
+
+model OptionGroup {
+  id        String          @id @default(cuid())
+  tenantId  String
+  tenant    Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String
+  type      OptionGroupType @default(MULTIPLE)
+  required  Boolean         @default(false)
+  minSelect Int             @default(0)
+  maxSelect Int             @default(0) // 0 = sem limite
+  sortOrder Int             @default(0)
+  options   Option[]
+
+  @@index([tenantId, productId])
+}
+
+model Option {
+  id              String      @id @default(cuid())
+  tenantId        String
+  tenant          Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  groupId         String
+  group           OptionGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  name            String
+  priceDeltaCents Int         @default(0)
+  available       Boolean     @default(true)
+  sortOrder       Int         @default(0)
+
+  @@index([tenantId, groupId])
+}
+
+model Order {
+  id               String      @id @default(cuid())
+  tenantId         String
+  tenant           Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  number           Int
+  publicToken      String      @unique
+  status           OrderStatus @default(NEW)
+  mode             ServiceMode
+  customerName     String
+  customerPhone    String?
+  tableNumber      String?
+  deliveryAddress  String?
+  notes            String?
+  subtotalCents    Int
+  deliveryFeeCents Int         @default(0)
+  totalCents       Int
+  // LGPD: momento em que o cliente aceitou o uso dos dados para o pedido
+  consentAt        DateTime
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  items            OrderItem[]
+
+  @@unique([tenantId, number])
+  @@index([tenantId, status, createdAt])
+}
+
+model OrderItem {
+  id             String  @id @default(cuid())
+  tenantId       String
+  tenant         Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  orderId        String
+  order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId      String?
+  productName    String
+  unitPriceCents Int
+  quantity       Int
+  // Cópia das opções escolhidas no momento do pedido: [{group, name, priceDeltaCents}]
+  options        Json
+  notes          String?
+  totalCents     Int
+
+  @@index([orderId])
+}
+
+model ProductViewDay {
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  day       DateTime @db.Date
+  count     Int      @default(0)
+
+  @@id([productId, day])
+  @@index([tenantId, day])
+}
+
+model MediaAsset {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  url       String
+  kind      String // image | video
+  mimeType  String
+  sizeBytes Int
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  tenantId  String?
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  action    String
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, createdAt])
+}
