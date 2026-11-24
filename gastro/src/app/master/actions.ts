@@ -227,3 +227,37 @@ export async function updateTenantBasicsAction(_: ActionResult, form: FormData):
   revalidatePath(`/master/estabelecimentos/${id}`);
   return { ok: true, message: slug !== before.slug ? "Salvo. Atenção: o link mudou, QR Codes e etiquetas NFC antigas deixam de funcionar." : "Salvo." };
 }
+
+/**
+ * Exclusão definitiva (LGPD). Só para contas já canceladas, e exige digitar o
+ * endereço do cardápio para confirmar. Apaga produtos, pedidos, usuários e
+ * assinatura do estabelecimento. Fotos e vídeos no armazenamento são removidos
+ * quando possível.
+ */
+export async function deleteTenantAction(_: ActionResult, form: FormData): Promise<ActionResult> {
+  const master = await requireMaster();
+  const id = String(form.get("tenantId") ?? "");
+  const confirm = String(form.get("confirm") ?? "").trim().toLowerCase();
+  const t = await db.tenant.findUnique({ where: { id } });
+  if (!t) return { error: "Estabelecimento não encontrado." };
+  if (t.status !== "CANCELED") return { error: "Cancele a conta antes de excluir definitivamente." };
+  if (confirm !== t.slug) return { error: `Digite exatamente “${t.slug}” para confirmar.` };
+
+  const media = await db.mediaAsset.findMany({ where: { tenantId: id }, select: { url: true } });
+  const products = await db.product.findMany({ where: { tenantId: id }, select: { imageUrl: true, videoUrl: true } });
+  const urls = [t.logoUrl, t.coverUrl, ...media.map((m) => m.url), ...products.flatMap((p) => [p.imageUrl, p.videoUrl])].filter((u): u is string => !!u);
+
+  await db.tenant.delete({ where: { id } });
+  await audit("master.tenant_delete", { actorId: master.id, meta: { tenantId: id, slug: t.slug, name: t.name } });
+
+  const remote = urls.filter((u) => u.startsWith("https://"));
+  if (remote.length && process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
+      const { del } = await import("@vercel/blob");
+      await del(remote);
+    } catch (e) {
+      console.error("falha ao apagar arquivos do Blob", e);
+    }
+  }
+  redirect("/master/estabelecimentos?excluido=1");
+}

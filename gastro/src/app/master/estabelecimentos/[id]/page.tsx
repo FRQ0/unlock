@@ -12,7 +12,7 @@ import { ConfirmButton } from "@/components/ui/ConfirmButton";
 import { Icon } from "@/components/ui/Icon";
 import { changeTenantPlanAction, setTenantStatusAction, startActingAction } from "../../actions";
 import { SubStatusPill, TenantStatusPill } from "../../ui";
-import { BasicsForm, ManualPaymentForm } from "./Forms";
+import { BasicsForm, DeleteTenantForm, ManualPaymentForm } from "./Forms";
 
 export const metadata: Metadata = { title: "Estabelecimento" };
 
@@ -97,6 +97,9 @@ export default async function TenantDetail({ params, searchParams }: { params: P
             </div>
             <p className="text-[13px] text-ink-muted">Ativar sem registrar pagamento libera o cardápio, mas a assinatura continua como pendente.</p>
           </Card>
+          {t.status === "CANCELED" && (
+            <Card className="flex flex-col gap-4 !border-red-200"><h2 className="text-lg font-semibold">Excluir definitivamente</h2><DeleteTenantForm tenantId={t.id} slug={t.slug} /></Card>
+          )}
           <Card className="flex flex-col gap-4"><h2 className="text-lg font-semibold">Dados básicos</h2><BasicsForm tenantId={t.id} name={t.name} slug={t.slug} /></Card>
           <Card className="flex flex-col gap-3">
             <div className="flex items-center justify-between"><h2 className="text-lg font-semibold">Usuários</h2><Link href={`/master/usuarios?tenant=${t.id}`} className="text-sm font-semibold text-brasa-ink">Gerenciar</Link></div>

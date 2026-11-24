@@ -184,3 +184,28 @@ test.describe("cardápio público e pedidos", () => {
     expect(res?.status()).toBe(404);
   });
 });
+
+test.describe("exclusão definitiva (Master)", () => {
+  test("só exclui conta cancelada e com confirmação do endereço", async ({ page }) => {
+    test.skip(!process.env.MASTER_EMAIL || !process.env.MASTER_PASSWORD, "Defina MASTER_EMAIL e MASTER_PASSWORD");
+    const { db: prisma } = await import("./fixtures");
+    const t = await prisma.tenant.create({ data: { slug: `e2e-del-${Date.now()}`, name: "E2E exclusão", status: "ACTIVE" } });
+    await page.goto("/entrar");
+    await page.fill("input[name=email]", process.env.MASTER_EMAIL!);
+    await page.fill("input[name=password]", process.env.MASTER_PASSWORD!);
+    await page.click("button[type=submit]");
+    await page.waitForURL("**/master");
+    await page.goto(`/master/estabelecimentos/${t.id}`);
+    await expect(page.getByText("Excluir definitivamente")).toHaveCount(0); // ativo: sem opção
+    await prisma.tenant.update({ where: { id: t.id }, data: { status: "CANCELED" } });
+    await page.reload();
+    await page.fill("input[name=confirm]", "endereco-errado");
+    await page.click("button:has-text('Excluir definitivamente')");
+    await expect(page.getByText(`Digite exatamente “${t.slug}”`)).toBeVisible();
+    expect(await prisma.tenant.findUnique({ where: { id: t.id } })).not.toBeNull();
+    await page.fill("input[name=confirm]", t.slug);
+    await page.click("button:has-text('Excluir definitivamente')");
+    await page.waitForURL("**/master/estabelecimentos?excluido=1");
+    expect(await prisma.tenant.findUnique({ where: { id: t.id } })).toBeNull();
+  });
+});

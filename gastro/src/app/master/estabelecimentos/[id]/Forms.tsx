@@ -1,6 +1,6 @@
 "use client";
 import { useActionState } from "react";
-import { recordManualPaymentAction, updateTenantBasicsAction } from "../../actions";
+import { deleteTenantAction, recordManualPaymentAction, updateTenantBasicsAction } from "../../actions";
 import { Field, Select } from "@/components/ui/Field";
 import { SubmitButton } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Feedback";
@@ -35,6 +35,19 @@ export function BasicsForm({ tenantId, name, slug }: { tenantId: string; name: s
       <Field label="Nome" name="name" defaultValue={name} required />
       <Field label="Endereço do cardápio" name="slug" defaultValue={slug} required hint="Mudar o endereço invalida QR Codes e etiquetas NFC já gravadas." />
       <SubmitButton variant="secondary" pendingText="Salvando...">Salvar</SubmitButton>
+    </form>
+  );
+}
+
+export function DeleteTenantForm({ tenantId, slug }: { tenantId: string; slug: string }) {
+  const [state, action] = useActionState(deleteTenantAction, undefined);
+  return (
+    <form action={action} className="flex flex-col gap-3">
+      <input type="hidden" name="tenantId" value={tenantId} />
+      {state?.error && <Alert tone="error">{state.error}</Alert>}
+      <Field label={`Para confirmar, digite: ${slug}`} name="confirm" required autoComplete="off" autoCapitalize="none" />
+      <SubmitButton variant="danger" pendingText="Excluindo...">Excluir definitivamente</SubmitButton>
+      <p className="text-[13px] text-ink-muted">Apaga produtos, pedidos, usuários, assinatura, fotos e vídeos. Não tem como desfazer.</p>
     </form>
   );
 }

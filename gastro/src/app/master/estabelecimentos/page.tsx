@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { Prisma, TenantStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import { fmtDate } from "@/lib/dates";
-import { EmptyState, PageHeader, Pill } from "@/components/ui/Feedback";
+import { Alert, EmptyState, PageHeader, Pill } from "@/components/ui/Feedback";
 import { LinkButton } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { SubStatusPill, TenantStatusPill, TENANT_STATUS_LABEL } from "../ui";
@@ -11,7 +11,7 @@ import { SubStatusPill, TenantStatusPill, TENANT_STATUS_LABEL } from "../ui";
 export const metadata: Metadata = { title: "Estabelecimentos" };
 const STATUSES: TenantStatus[] = ["ACTIVE", "PENDING_PAYMENT", "SUSPENDED", "CANCELED"];
 
-export default async function TenantsPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string }> }) {
+export default async function TenantsPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string; excluido?: string }> }) {
   const sp = await searchParams;
   const q = sp.q?.trim().slice(0, 80);
   const status = STATUSES.includes(sp.status as TenantStatus) ? (sp.status as TenantStatus) : undefined;
@@ -27,6 +27,7 @@ export default async function TenantsPage({ searchParams }: { searchParams: Prom
   return (
     <>
       <PageHeader kicker="Master" title="Estabelecimentos" subtitle={`${tenants.length} resultado(s).`} actions={<LinkButton href="/master/estabelecimentos/novo"><Icon name="plus" />Criar estabelecimento</LinkButton>} />
+      {sp.excluido && <Alert tone="success">Estabelecimento excluído definitivamente.</Alert>}
       <form className="flex flex-col gap-2 sm:flex-row" role="search">
         <label htmlFor="q" className="sr-only">Buscar</label>
         <input id="q" name="q" defaultValue={q} placeholder="Nome, endereço ou e-mail do dono" className="h-12 flex-1 rounded-xl border border-paper-line-2 bg-white px-3.5 focus:border-brasa focus:outline-none" />

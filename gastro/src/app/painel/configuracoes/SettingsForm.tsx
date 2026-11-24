@@ -129,7 +129,7 @@ export function PrivacyTools() {
           <SubmitButton variant="secondary" pendingText="Aguarde...">Anonimizar</SubmitButton>
         </form>
       </div>
-      <p className="text-[13px] text-ink-muted">Para encerrar a conta e apagar todos os dados, fale com a Unlock: a exclusão é definitiva.</p>
+      <p className="text-[13px] text-ink-muted">Para encerrar a conta e apagar todos os dados, fale com a Unlock. A exclusão é definitiva: baixe seus dados antes.</p>
     </Card>
   );
 }
